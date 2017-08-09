@@ -39,7 +39,7 @@ import static org.lenskit.slim.LinearRegressionHelper.*;
  */
 @Shareable
 public final class CovarianceUpdate extends SLIMScoringStrategy implements Serializable {
-    private static final long serialVersionUID = 4L;
+    private static final long serialVersionUID = 5L;
 
     private final double epsilon;
 

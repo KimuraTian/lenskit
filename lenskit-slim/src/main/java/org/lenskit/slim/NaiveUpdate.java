@@ -28,6 +28,8 @@ import org.lenskit.util.math.Vectors;
 
 import javax.inject.Inject;
 
+import java.io.Serializable;
+
 import static org.lenskit.slim.LinearRegressionHelper.*;
 
 
@@ -37,7 +39,8 @@ import static org.lenskit.slim.LinearRegressionHelper.*;
  * @author <a href="http://www.grouplens.org">GroupLens Research</a>
  */
 @Shareable
-public final class NaiveUpdate extends SLIMScoringStrategy {
+public final class NaiveUpdate extends SLIMScoringStrategy implements Serializable {
+    private static final long serialVersionUID = 4L;
 
     @Inject
     public NaiveUpdate(SLIMUpdateParameters parameters) {
