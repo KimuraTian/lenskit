@@ -40,7 +40,6 @@ public class SLIMModelProvider implements Provider<SLIMModel>{
     private final SLIMBuildContext buildContext;
     private final SLIMScoringStrategy lrModel;
 
-
     @Inject
     public SLIMModelProvider(@Transient SLIMBuildContext context,
                              SLIMScoringStrategy regressionModel) {
@@ -54,20 +53,21 @@ public class SLIMModelProvider implements Provider<SLIMModel>{
         LongSortedSet items = buildContext.getItemUniverse();
         int size = items.size();
         logger.debug("total {} item need to be trained", size);
+        int num = 1;
         OUTER: for (long item : items) {
+            logger.info("train {} of {} items", num, size);
             LongSortedSet neighbors = LongUtils.frozenSet(buildContext.getItemNeighbors(item));
             if (neighbors.isEmpty()) {
                 continue OUTER;
             }
             Long2ObjectMap<Long2DoubleMap> trainingData = new Long2ObjectOpenHashMap<>();
-            Long2ObjectMap<Long2DoubleMap> innerProducts = new Long2ObjectOpenHashMap<>();
             Long2DoubleMap labels = LongUtils.frozenMap(buildContext.getItemRatings(item));
             for (long nbrs : neighbors) {
                 trainingData.put(nbrs, LongUtils.frozenMap(buildContext.getItemRatings(nbrs)));
-                innerProducts.put(nbrs, LongUtils.frozenMap(buildContext.getInnerProducts(nbrs)));
             }
-            Long2DoubleMap weight = lrModel.fit(labels, trainingData, innerProducts, item);
+            Long2DoubleMap weight = lrModel.fit(labels, trainingData);
             trainedWeight.put(item, weight);
+            num++;
         }
         return new SLIMModel(trainedWeight);
     }

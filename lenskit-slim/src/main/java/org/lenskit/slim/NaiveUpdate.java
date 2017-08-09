@@ -68,20 +68,21 @@ public final class NaiveUpdate extends SLIMScoringStrategy implements Serializab
     /**
      * Training process of SLIM using naive coordinate descent update
      *
-     * @param labels The label vector
+     * @param labels label vector
      * @param trainingDataMatrix Map of item IDs to item rating vectors.
-     * @return weight vector learned
+     * @return weight vectors learned
      */
-
     @Override
-    public Long2DoubleMap fit(Long2DoubleMap labels, Long2ObjectMap<Long2DoubleMap> trainingDataMatrix, Long2ObjectMap<Long2DoubleMap> covM, long itemYId) {
+    public Long2DoubleMap fit(Long2DoubleMap labels, Long2ObjectMap<Long2DoubleMap> trainingDataMatrix) {
         Long2DoubleMap weights = new Long2DoubleOpenHashMap();
 
         final double lambda = updateParameters.getLambda();
         final double beta = updateParameters.getBeta();
 
         Long2DoubleMap residuals = computeResiduals(labels, trainingDataMatrix, weights);
-        double lossValue = Double.POSITIVE_INFINITY;
+//        double lossValue = Double.POSITIVE_INFINITY;
+        double lossValue = computeLossFunction(residuals, weights);
+        logger.info("initial value of loss function is {} \n", lossValue);
         TrainingLoopController controller = updateParameters.getTrainingLoopController();
 
         while (controller.keepTraining(lossValue)) {
@@ -96,9 +97,10 @@ public final class NaiveUpdate extends SLIMScoringStrategy implements Serializab
             }
             lossValue = computeLossFunction(residuals, weights);
             int iterationCount = controller.getIterationCount();
-            logger.debug("train item {}: {}th round iteration and loss function reduced to {} \n",itemYId, iterationCount, lossValue);
+            logger.info("Learning process: {}th round iteration and loss function reduced to {} \n", iterationCount, lossValue);
         }
         return LongUtils.frozenMap(weights);
     }
+
 
 }

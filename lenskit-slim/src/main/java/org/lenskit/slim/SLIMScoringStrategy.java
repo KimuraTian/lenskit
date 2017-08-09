@@ -79,11 +79,9 @@ public abstract class SLIMScoringStrategy {
      *
      * @param labels The label vector
      * @param trainingDataMatrix Map of Item IDs to item rating vectors.
-     * @param covM Map of Item IDs to item-item inner-products vectors
-     * @param item item ID of The label vector {@code labels}
      * @return a trained weight vector
      */
-    public abstract Long2DoubleMap fit(Long2DoubleMap labels, Long2ObjectMap<Long2DoubleMap> trainingDataMatrix, Long2ObjectMap<Long2DoubleMap> covM, long item);
+    public abstract Long2DoubleMap fit(Long2DoubleMap labels, Long2ObjectMap<Long2DoubleMap> trainingDataMatrix);
 
 
     /**

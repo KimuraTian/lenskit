@@ -73,13 +73,10 @@ public class FsSLIMBuildContextProvider implements Provider<SLIMBuildContext> {
         Long2ObjectMap<LongSortedSet> userItems = new Long2ObjectOpenHashMap<>();
         buildItemRatings(itemVectors, userItems);
 
-        Long2ObjectMap<Long2DoubleSortedMap> innerProducts = new Long2ObjectOpenHashMap<>();
-        buildItemItemInnerProducts(itemVectors, innerProducts);
-
         Long2ObjectMap<LongSortedSet> itemNeighbors = new Long2ObjectOpenHashMap<>();
         buildItemNeighbors(itemNeighbors);
 
-        return new SLIMBuildContext(itemVectors, itemNeighbors, innerProducts, userItems);
+        return new SLIMBuildContext(itemVectors, itemNeighbors, userItems);
     }
 
 
@@ -128,49 +125,6 @@ public class FsSLIMBuildContextProvider implements Provider<SLIMBuildContext> {
     }
 
 
-    /**
-     * Build item-item inner-products matrix used to speed up SLIM learning process.
-     * @param itemVectors mapping from item ids to (userId: rating) maps
-     * @param innerProds mapping from item ids to (itemId: inner-product) maps to be filled
-     */
-    private void buildItemItemInnerProducts(Long2ObjectMap<Long2DoubleSortedMap> itemVectors, Long2ObjectMap<Long2DoubleSortedMap> innerProds) {
-        Long2ObjectMap<Long2DoubleMap> innerProducts = new Long2ObjectOpenHashMap<>();
-        LongSortedSet itemSet = LongUtils.frozenSet(itemVectors.keySet());
-        LongIterator iter = itemSet.iterator();
-
-        while (iter.hasNext()) {
-            long itemIId = iter.nextLong();
-            Long2DoubleMap itemIRatings = itemVectors.get(itemIId);
-
-            //symmetric inner-products, so loop over the items after current item id
-            LongIterator iterInner = itemSet.iterator(itemIId);
-            while (iterInner.hasNext()) {
-                long itemJId = iterInner.nextLong();
-                Long2DoubleMap itemJRatings = itemVectors.get(itemJId);
-                double innerProduct = Vectors.dotProduct(itemIRatings, itemJRatings);
-
-                // storing interProducts used for SLIM learning
-                Long2DoubleMap dotJIs = innerProducts.get(itemJId);
-                Long2DoubleMap dotIJs = innerProducts.get(itemIId);
-                if (dotJIs == null) dotJIs = new Long2DoubleOpenHashMap();
-                if (dotIJs == null) dotIJs = new Long2DoubleOpenHashMap();
-                dotJIs.put(itemIId, innerProduct);
-                dotIJs.put(itemJId, innerProduct);
-                innerProducts.put(itemJId, dotJIs);
-                innerProducts.put(itemIId, dotIJs);
-            }
-        }
-        //frozen each map in innerProducts and fill up innerProds
-        Iterator<Map.Entry<Long,Long2DoubleMap>> innerProductsIter = innerProducts.entrySet().iterator();
-        while (innerProductsIter.hasNext()) {
-            Map.Entry<Long,Long2DoubleMap> entry = innerProductsIter.next();
-            long item = entry.getKey();
-            Long2DoubleMap innerProduct = entry.getValue();
-            Long2DoubleSortedMap value = LongUtils.frozenMap(innerProduct);
-            innerProds.put(item, value);
-            innerProductsIter.remove();
-        }
-    }
 
     /**
      * Build mapping from item Ids to sets of similar items

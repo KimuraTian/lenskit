@@ -70,43 +70,56 @@ public final class CovarianceUpdate extends SLIMScoringStrategy implements Seria
 
 
     /**
-     * Training process of SLIM using covariance update of coordinate descent
-     * Get a learned weight using covariance update (formula (9))
-     * Initialize weight to zero as in this case the L1-term and L2-term become zero in loss function,
+     * Training process of SLIM using covariance coordinate descent update
+     * Initialize weight to zero as in this case the L1-term and L2-term of loss function become zero,
      * which means final learned weight should at least make the value of loss function less than the starting value.
-     *
-     * @param labels label vector which is one column of rating matrix (Map of all item IDs to item rating vectors)
-     * @param trainingDataMatrix Map of Item IDs to item rating vectors.
-     * @param covMatrix Map of Item IDs to item-item inner-products
-     * @param itemYId item ID of label vector {@code labels}
-     * @return weight vector learned
+     * @param labels label vector
+     * @param trainingDataMatrix Map of item IDs to item rating vectors.
+     * @return weight vectors learned
      */
     @Override
-    public Long2DoubleMap fit(Long2DoubleMap labels, Long2ObjectMap<Long2DoubleMap> trainingDataMatrix, Long2ObjectMap<Long2DoubleMap> covMatrix, long itemYId) {
-        // initialize training weights to be empty
+    public Long2DoubleMap fit(Long2DoubleMap labels, Long2ObjectMap<Long2DoubleMap> trainingDataMatrix) {
         Long2DoubleMap weights = new Long2DoubleOpenHashMap();
-
         final double lambda = updateParameters.getLambda();
         final double beta = updateParameters.getBeta();
 
+        Long2DoubleMap dotProdsOfXsY = new Long2DoubleOpenHashMap();
+        Long2ObjectMap<Long2DoubleMap> innerProdsOfXs = new Long2ObjectOpenHashMap<>();
         Long2DoubleMap residuals = computeResiduals(labels, trainingDataMatrix, weights);
-        TrainingLoopController controller = updateParameters.getTrainingLoopController();
 
-        double lossValue = Double.POSITIVE_INFINITY;
-//        double lossValue = computeLossFunction(residuals, weights);
-//        logger.debug("train item {}: initial value of loss function is {} \n",itemYId, lossValue);
+//        double lossValue = Double.POSITIVE_INFINITY;
+        double lossValue = computeLossFunction(residuals, weights);
+        logger.info("initial value of loss function is {} \n", lossValue);
+        TrainingLoopController controller = updateParameters.getTrainingLoopController();
 
         while (controller.keepTraining(lossValue)) {
             LongIterator items = trainingDataMatrix.keySet().iterator();
-            // one round of coordinate descent update
             while (items.hasNext()) {
                 long j = items.nextLong();
                 Long2DoubleMap itemXj = trainingDataMatrix.get(j);
-                Long2DoubleMap dotProdsOfXjXks = covMatrix.get(j);
-                if (dotProdsOfXjXks == null) { dotProdsOfXjXks = new Long2DoubleOpenHashMap(); }
-                double dotProdOfXjY = dotProdsOfXjXks.get(itemYId);
+                double dotProdOfXjY;
+
+                // Storing dot product of column j and labels
+                if (dotProdsOfXsY.containsKey(j)) {
+                    dotProdOfXjY = dotProdsOfXsY.get(j);
+                } else {
+                    dotProdOfXjY = Vectors.dotProduct(itemXj, labels);
+                    dotProdsOfXsY.put(j, dotProdOfXjY);
+                }
 
                 Long2DoubleMap nonzeroWeights = Vectors.filterValues(weights, 0.0, epsilon);
+
+                // Storing dot product of column j and column k(s) into innerProdsOfXs
+                Long2DoubleMap dotProdsOfXjXks = innerProdsOfXs.get(j);
+                if (dotProdsOfXjXks == null) dotProdsOfXjXks = new Long2DoubleOpenHashMap();
+                for (long weightsIdk : nonzeroWeights.keySet()) {
+                    if (!dotProdsOfXjXks.containsKey(weightsIdk)) {
+                        double dotProdOfXjXk = Vectors.dotProduct(itemXj, trainingDataMatrix.get(weightsIdk));
+                        dotProdsOfXjXks.put(weightsIdk, dotProdOfXjXk);
+                    }
+                }
+                innerProdsOfXs.put(j, dotProdsOfXjXks);
+
                 nonzeroWeights.remove(j);
 
                 double weightToUpdate = weights.get(j);
@@ -117,8 +130,8 @@ public final class CovarianceUpdate extends SLIMScoringStrategy implements Seria
 
             lossValue = computeLossFunction(residuals, weights);
             int iterationCount = controller.getIterationCount();
-            logger.debug("train item {}: {}th round iteration and loss function reduced to {} \n",itemYId, iterationCount, lossValue);
-//            System.out.println("train item " + itemYId + ": " + iterationCount + "th round iteration and loss function reduced to " + lossValue);
+            logger.info("Learning process: {}th round iteration and loss function reduced to {} \n",iterationCount, lossValue);
+//            System.out.println("Learning process: " + iterationCount + "th round iteration and loss function reduced to " + lossValue);
         }
         return LongUtils.frozenMap(weights);
     }

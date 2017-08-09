@@ -44,9 +44,6 @@ public class SLIMBuildContext implements Serializable {
     private final
     Long2ObjectMap<LongSortedSet> itemNeighbors;
     @Nonnull
-    private final
-    Long2ObjectMap<Long2DoubleSortedMap> innerProducts;
-    @Nonnull
     private final Long2ObjectMap<LongSortedSet> userItems;
 
 
@@ -55,36 +52,15 @@ public class SLIMBuildContext implements Serializable {
      *
      * @param itemRatings Map of item IDs to item rating vectors.
      * @param itemNgbrs Map of item IDs to neighbor items ids.
-     * @param innerProds Map of item IDs to inner-products with other item rating vectors
      * @param userItemSets of user IDs to user rated items
      */
     public SLIMBuildContext(@Nonnull Long2ObjectMap<Long2DoubleSortedMap> itemRatings,
                             @Nonnull Long2ObjectMap<LongSortedSet> itemNgbrs,
-                            @Nonnull Long2ObjectMap<Long2DoubleSortedMap> innerProds,
                             @Nonnull Long2ObjectMap<LongSortedSet> userItemSets) {
         itemVectors = itemRatings;
         itemNeighbors = itemNgbrs;
-        innerProducts = innerProds;
         userItems = userItemSets;
     }
-
-
-    /**
-     * Get all neighbors' inner-products with the given item id
-     * @param itemId The item id to query for
-     * @return a mapping of neighborhoods' id to inner-products
-     */
-    @Nonnull
-    public Long2DoubleSortedMap getInnerProducts(long itemId) {
-        Long2DoubleSortedMap innerProduct = innerProducts.get(itemId);
-        if (innerProduct == null) {
-            innerProduct = Long2DoubleSortedMaps.EMPTY_MAP;
-        }
-        return innerProduct;
-    }
-
-    @Nonnull
-    public Long2ObjectMap<Long2DoubleSortedMap> getInnerProducts() { return innerProducts;}
 
     /**
      * Get the items rated by a particular user

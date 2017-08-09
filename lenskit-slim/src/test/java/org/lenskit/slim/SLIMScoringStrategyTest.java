@@ -170,14 +170,14 @@ public class SLIMScoringStrategyTest {
         // Naive update
 //        timer.start();
         NaiveUpdate model = new NaiveUpdate(parameters);
-        Long2DoubleMap predictedW = model.fit(y, data, innerProducts, ITEM_NUM);
+        Long2DoubleMap predictedW = model.fit(y, data);
 //        timer.stop();
 
         // Covariance update
 //        timer.reset();
 //        timer.start();
         CovarianceUpdate modelCov = new CovarianceUpdate(parameters, Double.MIN_VALUE);
-        Long2DoubleMap predictedWCov = modelCov.fit(y, data, innerProducts, ITEM_NUM);
+        Long2DoubleMap predictedWCov = modelCov.fit(y, data);
 //        timer.stop();
         Iterator<Map.Entry<Long,Double>> iter = weights.entrySet().iterator();
         while(iter.hasNext()) {
@@ -196,7 +196,7 @@ public class SLIMScoringStrategyTest {
 
         //Naive update
         NaiveUpdate model = new NaiveUpdate(parameters);
-        Long2DoubleMap predictedW = model.fit(y, data, innerProducts, ITEM_NUM);
+        Long2DoubleMap predictedW = model.fit(y, data);
         Long2DoubleMap resBefore = model.computeResiduals(y, data, weights);
         Long2DoubleMap resAfter = model.computeResiduals(y, data, predictedW);
         double lossFunBefore = model.computeLossFunction(resBefore, weights);
@@ -204,7 +204,7 @@ public class SLIMScoringStrategyTest {
 
         //Covariance update
         CovarianceUpdate modelCov = new CovarianceUpdate(parameters, Double.MIN_VALUE);
-        Long2DoubleMap predictedWCov = modelCov.fit(y, data, innerProducts, ITEM_NUM);
+        Long2DoubleMap predictedWCov = modelCov.fit(y, data);
         Long2DoubleMap resCovBefore = modelCov.computeResiduals(y, data, weights);
         Long2DoubleMap resCovAfter = modelCov.computeResiduals(y, data, predictedWCov);
         double lossFunCovBefore = modelCov.computeLossFunction(resCovBefore, weights);
