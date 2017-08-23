@@ -136,6 +136,8 @@ public class FsSLIMBuildContextProvider implements Provider<SLIMBuildContext> {
             final long item = iter.nextLong();
             LongOpenHashSet itemNgbrCopied = new LongOpenHashSet(itemSimilarityModel.getNeighbors(item).keySet());
             LongSortedSet itemNeighbor = LongUtils.frozenSet(itemNgbrCopied);
+            logger.debug("item {}: {} neighbors are found", item, itemNeighbor.size());
+            logger.debug("neighbor ids {}", itemNeighbor);
             itemNeighbors.put(item, itemNeighbor);
         }
 

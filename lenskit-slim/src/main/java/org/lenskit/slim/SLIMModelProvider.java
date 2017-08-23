@@ -55,8 +55,9 @@ public class SLIMModelProvider implements Provider<SLIMModel>{
         logger.debug("total {} item need to be trained", size);
         int num = 1;
         OUTER: for (long item : items) {
-            logger.info("train {} of {} items", num, size);
+            logger.debug("train {} of {} items", num, size);
             LongSortedSet neighbors = LongUtils.frozenSet(buildContext.getItemNeighbors(item));
+            logger.debug("{} neighbors are found", neighbors.size());
             if (neighbors.isEmpty()) {
                 continue OUTER;
             }

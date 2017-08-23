@@ -82,7 +82,7 @@ public final class NaiveUpdate extends SLIMScoringStrategy implements Serializab
         Long2DoubleMap residuals = computeResiduals(labels, trainingDataMatrix, weights);
 //        double lossValue = Double.POSITIVE_INFINITY;
         double lossValue = computeLossFunction(residuals, weights);
-        logger.info("initial value of loss function is {} \n", lossValue);
+        logger.debug("initial value of loss function is {} \n", lossValue);
         TrainingLoopController controller = updateParameters.getTrainingLoopController();
 
         while (controller.keepTraining(lossValue)) {
@@ -97,7 +97,7 @@ public final class NaiveUpdate extends SLIMScoringStrategy implements Serializab
             }
             lossValue = computeLossFunction(residuals, weights);
             int iterationCount = controller.getIterationCount();
-            logger.info("Learning process: {}th round iteration and loss function reduced to {} \n", iterationCount, lossValue);
+            logger.debug("Learning process: {}th round iteration and loss function reduced to {} \n", iterationCount, lossValue);
         }
         return LongUtils.frozenMap(weights);
     }
