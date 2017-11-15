@@ -56,13 +56,20 @@ public class HPFRecommenderBuildTest {
     @Before
     public void setup() throws RecommenderBuildException {
         List<Rating> rs = new ArrayList<>();
-        double[][] ratings = {
+        double[][] ratingsImplicit = {
                 {0, 1, 1, 1, 1},
                 {1, 0, 1, 0, 0},
                 {1, 1, 1, 1, 0},
                 {1, 1, 0, 0, 1},
                 {1, 1, 1, 1, 1},
                 {0, 0, 0, 1, 0}};
+        double[][] ratings = {
+                {0, 5, 2, 10, 1},
+                {1, 0, 10, 0, 0},
+                {1, 1, 8, 10, 0},
+                {1, 8, 0, 0, 1},
+                {1, 2, 2, 5, 3},
+                {0, 0, 0, 6, 0}};
         EntityFactory ef = new EntityFactory();
         data = new Long2ObjectOpenHashMap<>();
         for (int user = 1; user <= ratings.length; user++) {
@@ -87,10 +94,8 @@ public class HPFRecommenderBuildTest {
                 .to(PackedRatingMatrix.class);
         config.bind(ItemScorer.class)
                 .to(HPFItemScorer.class);
-        config.bind(StoppingCondition.class)
-                .to(AbsErrorStoppingCondition.class);
-//        config.bind(HPFModel.class)
-//                .toProvider(HPFModelProvider.class);
+        config.bind(HPFModel.class)
+                .toProvider(HPFModelProvider.class);
         config.set(ConvergenceCheckFrequency.class)
                 .to(2);
         config.set(StoppingThreshold.class)
@@ -99,12 +104,12 @@ public class HPFRecommenderBuildTest {
                 .to(5);
         config.set(SplitProportion.class)
                 .to(0.1);
-        config.set(RandomSeed.class)
-                .to(System.currentTimeMillis());
+//        config.set(RandomSeed.class)
+//                .to(System.currentTimeMillis());
         config.set(IterationCount.class)
-                .to(10);
-//        config.set(IsProbabilityPrediciton.class)
-//                .to(false);
+                .to(1000);
+        config.set(IsProbabilityPrediction.class)
+                .to(false);
 
         return LenskitRecommenderEngine.build(config, dao);
     }

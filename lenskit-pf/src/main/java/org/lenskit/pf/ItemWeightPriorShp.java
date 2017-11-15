@@ -30,11 +30,17 @@ import org.lenskit.inject.Parameter;
 import javax.inject.Qualifier;
 import java.lang.annotation.*;
 
+/**
+ * The shape parameter of the prior distribution (Gamma distribution) of each item attribute.
+ *
+ * Poisson Factorization models each item as a vector of K latent attributes.
+ * The prior distribution of each element of the latent vector is modeled as a Gamma distribution.
+ */
 @Documented
 @DefaultDouble(0.3)
 @Parameter(Double.class)
 @Qualifier
 @Target({ElementType.METHOD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface UserActivityShpPrior {
+public @interface ItemWeightPriorShp {
 }
